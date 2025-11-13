@@ -12,7 +12,7 @@ export interface ApiConfig {
 export class ApiConfigService {
   
   private config: ApiConfig = {
-    baseUrl: 'http://localhost:8080/api',
+    baseUrl: 'http://localhost:8081/api',
     timeout: 30000,
     headers: {
       'Content-Type': 'application/json'
