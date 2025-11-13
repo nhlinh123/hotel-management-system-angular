@@ -1,11 +1,13 @@
-import {Component, Injector, OnInit} from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { AuthenticationService } from '../../app/services/authentication.service';
-import { Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http';
+import {Component, Injector, OnDestroy, OnInit} from '@angular/core';
+import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import {AuthenticationService} from '../../app/services/authentication.service';
+import {Router} from '@angular/router';
+import {CommonModule} from '@angular/common';
+import {HttpClientModule} from '@angular/common/http';
 import {AUTHENTICATION_SERVICE_TOKEN} from '../../app/injection-tokens/injection-token';
 import {authenticationFactory} from '../../app/interfaces/authentication.interface';
+import {catchError, Observable, of, pipe, Subscription, tap} from 'rxjs';
+import {AuthenticationResponse} from '../../app/models';
 
 @Component({
   selector: 'app-login',
@@ -21,11 +23,13 @@ import {authenticationFactory} from '../../app/interfaces/authentication.interfa
     }
   ]
 })
-export class LoginComponent implements OnInit {
-  loginForm!: FormGroup;
-  submitted = false;
-  loading = false;
-  error = '';
+export class LoginComponent implements OnInit, OnDestroy {
+  public loginForm!: FormGroup;
+  public submitted = false;
+  public loading = false;
+  public error = '';
+
+  private subscription: Subscription = new Subscription();
 
   constructor(
     private formBuilder: FormBuilder,
@@ -39,6 +43,12 @@ export class LoginComponent implements OnInit {
 
   ngOnInit(): void {
     this.initializeForm();
+  }
+
+  ngOnDestroy() {
+    if (this.subscription && !this.subscription.closed) {
+      this.subscription.unsubscribe();
+    }
   }
 
   private initializeForm(): void {
@@ -61,15 +71,17 @@ export class LoginComponent implements OnInit {
     }
 
     this.loading = true;
-    this.authenticationService.login(this.loginForm.value).subscribe({
-      next: (response: any) => {
-        this.authenticationService.setCurrentUser(response);
-        this.router.navigate(['/']);
-      },
-      error: (error) => {
-        this.error = error?.error?.message || 'Login failed. Please try again.';
-        this.loading = false;
-      }
-    });
+    this.subscription = this.authenticationService.login(this.loginForm.value)
+      .pipe(
+        tap((response: AuthenticationResponse) => {
+          this.authenticationService.setCurrentUser(response);
+          this.router.navigate(['/']);
+        }),
+        catchError((err: any) => {
+          this.error = err?.error?.message || 'Login failed. Please try again.';
+          this.loading = false;
+          return of(false);
+        })
+      ).subscribe();
   }
 }
