@@ -1,0 +1,126 @@
+<div class="detail-container">
+  <div class="detail-header">
+    <button class="btn-back" (click)="goBack()">← Back to Rooms</button>
+    <div>
+      <h1>{{ room() ? 'Room #' + room()!.roomNumber : 'New Room' }}</h1>
+      <p class="subtitle">{{ isEditing() ? 'Edit Room Details' : 'Room Information' }}</p>
+    </div>
+    <div class="actions" *ngIf="room() && !isEditing()">
+      <button class="btn btn-primary" (click)="toggleEdit()">Edit</button>
+      <button class="btn btn-danger" (click)="deleteRoom()">Delete</button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error()" class="error-state">
+    <p>{{ error() }}</p>
+    <button class="btn btn-primary" (click)="loadRoom()">Retry</button>
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="!loading() && !error()" class="detail-content">
+    <div class="form-section">
+      <h2>Room Details</h2>
+      <form [formGroup]="form" (ngSubmit)="submit()" class="room-form">
+        <div class="form-group">
+          <label for="roomNumber">Room Number *</label>
+          <input
+            *ngIf="isEditing()"
+            type="text"
+            id="roomNumber"
+            formControlName="roomNumber"
+            class="form-input"
+            [disabled]="!isEditing()" />
+          <div *ngIf="!isEditing()" class="form-value">{{ room()?.roomNumber }}</div>
+        </div>
+
+        <div class="form-group">
+          <label for="type">Room Type *</label>
+          <input
+            *ngIf="isEditing()"
+            type="text"
+            id="type"
+            formControlName="type"
+            class="form-input"
+            placeholder="Single, Double, Suite, etc."
+            [disabled]="!isEditing()" />
+          <div *ngIf="!isEditing()" class="form-value">{{ room()?.type }}</div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="price">Price per Night *</label>
+            <input
+              *ngIf="isEditing()"
+              type="number"
+              id="price"
+              formControlName="price"
+              class="form-input"
+              [disabled]="!isEditing()" />
+            <div *ngIf="!isEditing()" class="form-value">${{ room()?.price }}</div>
+          </div>
+
+          <div class="form-group">
+            <label for="available">Status</label>
+            <input
+              *ngIf="isEditing()"
+              type="checkbox"
+              id="available"
+              formControlName="available"
+              class="form-checkbox"
+              [disabled]="!isEditing()" />
+            <div *ngIf="!isEditing()" class="form-value">
+              <span [class.available]="room()?.available" [class.booked]="!room()?.available">
+                {{ room()?.available ? 'Available' : 'Booked' }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="hotelId">Hotel ID *</label>
+          <input
+            *ngIf="isEditing()"
+            type="number"
+            id="hotelId"
+            formControlName="hotelId"
+            class="form-input"
+            [disabled]="!isEditing()" />
+          <div *ngIf="!isEditing()" class="form-value">{{ room()?.hotelId }}</div>
+        </div>
+
+        <div *ngIf="isEditing()" class="form-actions">
+          <button type="submit" class="btn btn-primary" [disabled]="form.invalid">Save</button>
+          <button type="button" class="btn btn-secondary" (click)="toggleEdit()">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Bookings Section -->
+    <div *ngIf="room()" class="bookings-section">
+      <h2>Room Bookings</h2>
+
+      <div *ngIf="bookings().length === 0" class="empty-state">
+        <p>No bookings for this room</p>
+      </div>
+
+      <div *ngIf="bookings().length > 0" class="bookings-list">
+        <div *ngFor="let booking of bookings()" class="booking-item" (click)="viewBooking(booking.id)">
+          <div class="booking-info">
+            <p class="booking-guest" *ngIf="booking.guestName">👤 {{ booking.guestName }}</p>
+            <p class="booking-dates">📅 {{ booking.checkInDate | date: 'short' }} → {{ booking.checkOutDate | date: 'short' }}</p>
+          </div>
+          <span [class]="'booking-status status-' + booking.status.toLowerCase()">
+            {{ booking.status }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

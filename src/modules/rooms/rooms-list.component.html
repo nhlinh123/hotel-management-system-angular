@@ -1,0 +1,69 @@
+<div class="rooms-container">
+  <div class="rooms-header">
+    <div>
+      <h1>Rooms Management</h1>
+      <p class="subtitle">Manage all rooms across hotels</p>
+    </div>
+    <button class="btn btn-primary" (click)="addRoom()">
+      <span class="btn-icon">+</span>
+      Add New Room
+    </button>
+  </div>
+
+  <!-- Filter -->
+  <div *ngIf="hotels().length > 0" class="filter-section">
+    <button
+      class="filter-btn"
+      [class.active]="filterHotelId() === null"
+      (click)="setFilter(null)">
+      All Hotels
+    </button>
+    <button
+      *ngFor="let hotel of hotels()"
+      class="filter-btn"
+      [class.active]="filterHotelId() === hotel.id"
+      (click)="setFilter(hotel.id)">
+      {{ hotel.name }}
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading rooms...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error()" class="error-state">
+    <p>{{ error() }}</p>
+    <button class="btn btn-primary" (click)="loadRooms()">Retry</button>
+  </div>
+
+  <!-- Rooms List -->
+  <div *ngIf="!loading() && !error()" class="rooms-list">
+    <div *ngIf="filteredRooms.length === 0" class="empty-state">
+      <p>No rooms found</p>
+      <button class="btn btn-primary" (click)="addRoom()">Create First Room</button>
+    </div>
+
+    <div *ngFor="let room of filteredRooms" class="room-item" (click)="viewRoom(room.id)">
+      <div class="room-info">
+        <div class="room-header">
+          <h3>Room #{{ room.roomNumber }}</h3>
+          <span class="room-type">{{ room.type }}</span>
+        </div>
+        <p class="hotel-name">🏨 {{ getHotelName(room.hotelId) }}</p>
+        <p class="room-price">${{ room.price }}/night</p>
+      </div>
+      <div class="room-status">
+        <span [class.available]="room.available" [class.booked]="!room.available">
+          {{ room.available ? '✓ Available' : '✕ Booked' }}
+        </span>
+      </div>
+      <div class="room-actions">
+        <button class="btn-icon edit" (click)="editRoom(room.id, $event)" title="Edit">✏️</button>
+        <button class="btn-icon delete" (click)="deleteRoom(room.id, $event)" title="Delete">🗑️</button>
+      </div>
+    </div>
+  </div>
+</div>

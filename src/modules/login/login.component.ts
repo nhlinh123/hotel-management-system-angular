@@ -8,6 +8,7 @@ import {AUTHENTICATION_SERVICE_TOKEN} from '../../app/injection-tokens/injection
 import {authenticationFactory} from '../../app/interfaces/authentication.interface';
 import {catchError, Observable, of, pipe, Subscription, tap} from 'rxjs';
 import {AuthenticationResponse} from '../../app/models';
+import { NAVIGATION_ROUTES } from '../../app/config/navigation.config';
 
 @Component({
   selector: 'app-login',
@@ -37,7 +38,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     private router: Router
   ) {
     if (this.authenticationService.isAuthenticatedSync()) {
-      this.router.navigate(['/']);
+      this.router.navigate([NAVIGATION_ROUTES.DASHBOARD]);
     }
   }
 
@@ -75,7 +76,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       .pipe(
         tap((response: AuthenticationResponse) => {
           this.authenticationService.setCurrentUser(response);
-          this.router.navigate(['/']);
+          this.router.navigate([NAVIGATION_ROUTES.DASHBOARD]);
         }),
         catchError((err: any) => {
           this.error = err?.error?.message || 'Login failed. Please try again.';

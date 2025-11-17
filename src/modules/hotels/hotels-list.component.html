@@ -1,0 +1,44 @@
+<div class="hotels-container">
+  <div class="hotels-header">
+    <div>
+      <h1>Hotels Management</h1>
+      <p class="subtitle">Manage all hotels in the system</p>
+    </div>
+    <button class="btn btn-primary" (click)="addHotel()">
+      <span class="btn-icon">+</span>
+      Add New Hotel
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading hotels...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error()" class="error-state">
+    <p>{{ error() }}</p>
+    <button class="btn btn-primary" (click)="loadHotels()">Retry</button>
+  </div>
+
+  <!-- Hotels List -->
+  <div *ngIf="!loading() && !error()" class="hotels-list">
+    <div *ngIf="hotels().length === 0" class="empty-state">
+      <p>No hotels found</p>
+      <button class="btn btn-primary" (click)="addHotel()">Create First Hotel</button>
+    </div>
+
+    <div *ngFor="let hotel of hotels()" class="hotel-item" (click)="viewHotel(hotel.id)">
+      <div class="hotel-info">
+        <h3>{{ hotel.name }}</h3>
+        <p class="location">📍 {{ hotel.city }}, {{ hotel.country }}</p>
+        <p class="address">{{ hotel.address }}</p>
+      </div>
+      <div class="hotel-actions">
+        <button class="btn-icon edit" (click)="editHotel(hotel.id, $event)" title="Edit">✏️</button>
+        <button class="btn-icon delete" (click)="deleteHotel(hotel.id, $event)" title="Delete">🗑️</button>
+      </div>
+    </div>
+  </div>
+</div>

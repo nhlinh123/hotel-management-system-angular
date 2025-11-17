@@ -1,0 +1,56 @@
+<div class="users-container">
+  <div class="users-header">
+    <div>
+      <h1>Users Management</h1>
+      <p class="subtitle">Manage system users and roles</p>
+    </div>
+    <button class="btn btn-primary" (click)="addUser()">
+      <span class="btn-icon">+</span>
+      Add New User
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading users...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error()" class="error-state">
+    <p>{{ error() }}</p>
+    <button class="btn btn-primary" (click)="loadUsers()">Retry</button>
+  </div>
+
+  <!-- Users List -->
+  <div *ngIf="!loading() && !error()" class="users-list">
+    <div *ngIf="users().length === 0" class="empty-state">
+      <p>No users found</p>
+      <button class="btn btn-primary" (click)="addUser()">Create First User</button>
+    </div>
+
+    <table *ngIf="users().length > 0" class="users-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Username</th>
+          <th>Roles</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users()" (click)="viewUser(user.id)" class="user-row">
+          <td>{{ user.id }}</td>
+          <td class="username">{{ user.username }}</td>
+          <td>
+            <span class="role-badge">{{ user.roles }}</span>
+          </td>
+          <td class="actions">
+            <button class="btn-icon edit" (click)="editUser(user.id, $event)" title="Edit">✏️</button>
+            <button class="btn-icon delete" (click)="deleteUser(user.id, $event)" title="Delete">🗑️</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

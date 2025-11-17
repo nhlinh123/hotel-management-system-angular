@@ -1,0 +1,99 @@
+<div class="bookings-container">
+  <div class="bookings-header">
+    <div>
+      <h1>Bookings Management</h1>
+      <p class="subtitle">Manage all room bookings</p>
+    </div>
+    <button class="btn btn-primary" (click)="addBooking()">
+      <span class="btn-icon">+</span>
+      New Booking
+    </button>
+  </div>
+
+  <!-- Filter -->
+  <div class="filter-section">
+    <button
+      class="filter-btn"
+      [class.active]="filterStatus() === null"
+      (click)="setFilter(null)">
+      All Bookings
+    </button>
+    <button
+      class="filter-btn"
+      [class.active]="filterStatus() === 'PENDING'"
+      (click)="setFilter('PENDING')">
+      Pending
+    </button>
+    <button
+      class="filter-btn"
+      [class.active]="filterStatus() === 'CONFIRMED'"
+      (click)="setFilter('CONFIRMED')">
+      Confirmed
+    </button>
+    <button
+      class="filter-btn"
+      [class.active]="filterStatus() === 'CHECKED_IN'"
+      (click)="setFilter('CHECKED_IN')">
+      Checked In
+    </button>
+    <button
+      class="filter-btn"
+      [class.active]="filterStatus() === 'CHECKED_OUT'"
+      (click)="setFilter('CHECKED_OUT')">
+      Checked Out
+    </button>
+    <button
+      class="filter-btn"
+      [class.active]="filterStatus() === 'CANCELLED'"
+      (click)="setFilter('CANCELLED')">
+      Cancelled
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading bookings...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error()" class="error-state">
+    <p>{{ error() }}</p>
+    <button class="btn btn-primary" (click)="loadBookings()">Retry</button>
+  </div>
+
+  <!-- Bookings List -->
+  <div *ngIf="!loading() && !error()" class="bookings-list">
+    <div *ngIf="filteredBookings.length === 0" class="empty-state">
+      <p>No bookings found</p>
+      <button class="btn btn-primary" (click)="addBooking()">Create First Booking</button>
+    </div>
+
+    <div *ngFor="let booking of filteredBookings" class="booking-item" (click)="viewBooking(booking.id)">
+      <div class="booking-info">
+        <div class="booking-header">
+          <h3>Room #{{ getRoomNumber(booking.roomId) }}</h3>
+          <span [class]="'status status-' + getStatusColor(booking.status)">
+            {{ booking.status }}
+          </span>
+        </div>
+        <div class="booking-dates">
+          <p>📅 Check-in: {{ booking.checkInDate | date: 'short' }}</p>
+          <p>📅 Check-out: {{ booking.checkOutDate | date: 'short' }}</p>
+        </div>
+        <div *ngIf="booking.guestName" class="guest-info">
+          <p>👤 {{ booking.guestName }}</p>
+          <p *ngIf="booking.guestEmail">📧 {{ booking.guestEmail }}</p>
+          <p *ngIf="booking.guestPhone">📞 {{ booking.guestPhone }}</p>
+        </div>
+      </div>
+      <div class="booking-price">
+        <span class="price">${{ booking.totalPrice }}</span>
+      </div>
+      <div class="booking-actions">
+        <button class="btn-icon edit" (click)="editBooking(booking.id, $event)" title="Edit">✏️</button>
+        <button class="btn-icon delete" (click)="deleteBooking(booking.id, $event)" title="Delete">🗑️</button>
+      </div>
+    </div>
+  </div>
+</div>

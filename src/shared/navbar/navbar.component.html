@@ -1,0 +1,54 @@
+<nav class="navbar">
+  <div class="navbar-container">
+    <!-- Logo/Brand -->
+    <div class="navbar-brand">
+      <div class="app-logo">🏨</div>
+      <span class="app-name">HotelMS</span>
+    </div>
+
+    <!-- Desktop Menu -->
+    <ul class="nav-menu desktop-menu">
+      <li *ngFor="let item of navigationMenu" class="nav-item">
+        <a [routerLink]="[item.route]" routerLinkActive="active" class="nav-link">
+          <span class="nav-icon">{{ item.icon === 'dashboard' ? '📊' : item.icon === 'hotel' ? '🏨' : item.icon === 'door_front' ? '🚪' : item.icon === 'calendar_month' ? '📅' : item.icon === 'people' ? '👥' : '•' }}</span>
+          <span class="nav-label">{{ item.label }}</span>
+        </a>
+      </li>
+    </ul>
+
+    <!-- Right Side Actions -->
+    <div class="navbar-actions">
+      <!-- User Info (Desktop) -->
+      <div class="user-info desktop-only">
+        <span class="username">{{ username() }}</span>
+      </div>
+
+      <!-- Logout Button (Desktop) -->
+      <button class="btn-logout desktop-only" (click)="logout()">Logout</button>
+
+      <!-- Mobile Menu Toggle -->
+      <button class="hamburger" (click)="toggleMobileMenu()" [class.active]="mobileMenuOpen()">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Menu Dropdown -->
+  <div *ngIf="mobileMenuOpen()" class="mobile-menu-dropdown">
+    <ul class="mobile-nav-menu">
+      <li *ngFor="let item of navigationMenu" class="mobile-nav-item">
+        <a [routerLink]="[item.route]" (click)="closeMobileMenu()" routerLinkActive="active" class="mobile-nav-link">
+          <span class="nav-icon">{{ item.icon === 'dashboard' ? '📊' : item.icon === 'hotel' ? '🏨' : item.icon === 'door_front' ? '🚪' : item.icon === 'calendar_month' ? '📅' : item.icon === 'people' ? '👥' : '•' }}</span>
+          <span>{{ item.label }}</span>
+        </a>
+      </li>
+    </ul>
+    <div class="mobile-menu-divider"></div>
+    <div class="mobile-user-section">
+      <div class="mobile-username">{{ username() }}</div>
+      <button class="btn-mobile-logout" (click)="logout()">Logout</button>
+    </div>
+  </div>
+</nav>

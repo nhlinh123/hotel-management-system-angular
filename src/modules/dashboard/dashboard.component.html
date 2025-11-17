@@ -1,0 +1,121 @@
+<div class="dashboard-container">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div class="header-content">
+      <h1>Dashboard</h1>
+      <p class="subtitle">Hotel Management System Overview</p>
+    </div>
+    <div class="action-buttons">
+      <button class="btn btn-primary" (click)="navigateToAddHotel()">
+        <span class="btn-icon">+</span>
+        Add Hotel
+      </button>
+      <button class="btn btn-secondary" (click)="navigateToAddRoom()">
+        <span class="btn-icon">+</span>
+        Add Room
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading dashboard data...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error()" class="error-state">
+    <p>{{ error() }}</p>
+    <button class="btn btn-primary" (click)="loadDashboardStats()">Retry</button>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div *ngIf="!loading() && !error() && stats()" class="dashboard-content">
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+      <!-- Total Hotels Card -->
+      <div class="stat-card">
+        <div class="card-icon hotels">🏨</div>
+        <div class="card-content">
+          <h3>Total Hotels</h3>
+          <p class="stat-value">{{ stats()!.totalHotels }}</p>
+          <a href="javascript:void(0)" (click)="navigateToHotels()" class="card-link">View all →</a>
+        </div>
+      </div>
+
+      <!-- Total Rooms Card -->
+      <div class="stat-card">
+        <div class="card-icon rooms">🚪</div>
+        <div class="card-content">
+          <h3>Total Rooms</h3>
+          <p class="stat-value">{{ stats()!.totalRooms }}</p>
+          <a href="javascript:void(0)" (click)="navigateToRooms()" class="card-link">View all →</a>
+        </div>
+      </div>
+
+      <!-- Available Rooms Card -->
+      <div class="stat-card">
+        <div class="card-icon available">✅</div>
+        <div class="card-content">
+          <h3>Available Rooms</h3>
+          <p class="stat-value">{{ stats()!.availableRooms }}</p>
+          <span class="percentage">{{ stats()!.totalRooms > 0 ? ((stats()!.availableRooms / stats()!.totalRooms * 100) | number:'1.0-0') : 0 }}%</span>
+        </div>
+      </div>
+
+      <!-- Booked Rooms Card -->
+      <div class="stat-card">
+        <div class="card-icon booked">📅</div>
+        <div class="card-content">
+          <h3>Booked Rooms</h3>
+          <p class="stat-value">{{ stats()!.bookedRooms }}</p>
+          <span class="percentage">{{ stats()!.totalRooms > 0 ? ((stats()!.bookedRooms / stats()!.totalRooms * 100) | number:'1.0-0') : 0 }}%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hotels Details Grid -->
+    <div class="hotels-section">
+      <h2>Hotels Overview</h2>
+      <div class="hotels-grid">
+        <div *ngFor="let hotelStat of stats()!.hotelStats" class="hotel-card" (click)="navigateToHotelDetail(hotelStat.hotel.id)">
+          <div class="hotel-header">
+            <h3>{{ hotelStat.hotel.name }}</h3>
+            <span class="hotel-id">#{{ hotelStat.hotel.id }}</span>
+          </div>
+          <div class="hotel-location">
+            <span class="location-icon">📍</span>
+            <span>{{ hotelStat.hotel.city }}, {{ hotelStat.hotel.country }}</span>
+          </div>
+          <div class="hotel-address">{{ hotelStat.hotel.address }}</div>
+          
+          <div class="hotel-stats">
+            <div class="stat">
+              <span class="stat-label">Total Rooms</span>
+              <span class="stat-number">{{ hotelStat.totalRooms }}</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Available</span>
+              <span class="stat-number available">{{ hotelStat.availableRooms }}</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Booked</span>
+              <span class="stat-number booked">{{ hotelStat.bookedRooms }}</span>
+            </div>
+          </div>
+
+          <div class="progress-bar">
+            <div class="progress" [style.width.%]="hotelStat.totalRooms > 0 ? (hotelStat.bookedRooms / hotelStat.totalRooms * 100) : 0"></div>
+          </div>
+          <span class="progress-label">Occupancy Rate</span>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="stats()!.hotelStats.length === 0" class="empty-state">
+          <p>No hotels available yet</p>
+          <button class="btn btn-primary" (click)="navigateToAddHotel()">Create First Hotel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

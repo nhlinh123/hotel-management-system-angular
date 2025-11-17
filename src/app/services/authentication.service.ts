@@ -4,6 +4,8 @@ import {Router} from '@angular/router';
 import {AuthApiService} from '../api-proxy';
 import {Observable} from 'rxjs';
 import {AuthenticationRequest, AuthenticationResponse} from '../models';
+import { TokenStorageService } from '../api-proxy/token-storage.service';
+import { NAVIGATION_ROUTES } from '../config/navigation.config';
 
 @Injectable({
   providedIn: 'root'
@@ -11,7 +13,8 @@ import {AuthenticationRequest, AuthenticationResponse} from '../models';
 export class AuthenticationService implements IAuthentication {
   constructor(
     private router: Router,
-    private authApiService: AuthApiService
+    private authApiService: AuthApiService,
+    private tokenStorage: TokenStorageService
   ) {
   }
 
@@ -21,7 +24,7 @@ export class AuthenticationService implements IAuthentication {
 
   logout(): void {
     this.authApiService.logout();
-    this.router.navigate(['/login']);
+    this.router.navigate([NAVIGATION_ROUTES.LOGIN]);
   }
 
   isAuthenticated(): Observable<boolean> {
@@ -32,7 +35,11 @@ export class AuthenticationService implements IAuthentication {
     return this.authApiService.isAuthenticatedSync();
   }
 
-  getCurrentUser(): Observable<any> {
+  getCurrentUser(): any {
+    return this.tokenStorage.getUser();
+  }
+
+  getCurrentUserObservable(): Observable<any> {
     return this.authApiService.getCurrentUser();
   }
 

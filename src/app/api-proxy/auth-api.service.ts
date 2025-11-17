@@ -34,10 +34,27 @@ export class AuthApiService {
     const url = this.apiConfig.buildUrl(`${this.endpoint}/login`);
     return this.baseApi['post'](url, credentials).pipe(
       tap((response: any) => {
-        const token = response.data?.jwt || response.jwt;
+        console.log('AuthApiService - Login response:', response);
+        
+        // Extract token from response
+        let token: string | null = null;
+        
+        if (response?.data?.jwt) {
+          token = response.data.jwt;
+        } else if (response?.jwt) {
+          token = response.jwt;
+        } else if (response?.token) {
+          token = response.token;
+        }
+        
+        console.log('AuthApiService - Extracted token:', !!token);
+        
         if (token) {
           this.tokenStorage.saveToken(token);
+          console.log('AuthApiService - Token saved to storage');
           this.isAuthenticated$.next(true);
+        } else {
+          console.warn('AuthApiService - No token found in response');
         }
       }),
       map((response: any) => response.data || response)
@@ -70,12 +87,14 @@ export class AuthApiService {
   }
 
   setCurrentUser(user: any): void {
+    console.log('AuthApiService - Setting current user:', user);
     this.currentUser$.next(user);
     this.tokenStorage.saveUser(user);
   }
 
   private checkAuthentication(): void {
     if (this.tokenStorage.hasToken()) {
+      console.log('AuthApiService - Token found in storage, marking as authenticated');
       this.isAuthenticated$.next(true);
       const user = this.tokenStorage.getUser();
       if (user) {
