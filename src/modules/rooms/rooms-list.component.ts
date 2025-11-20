@@ -1,15 +1,47 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { RoomsService } from '../../app/services/rooms.service';
 import { HotelsService } from '../../app/services/hotels.service';
 import { Room, Hotel } from '../../app/models';
 import { NAVIGATION_ROUTES } from '../../app/config/navigation.config';
 
+// Ant Design Imports
+import { NzTableModule } from 'ng-zorro-antd/table';
+import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzModalModule } from 'ng-zorro-antd/modal';
+import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzSwitchModule } from 'ng-zorro-antd/switch';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
+import { NzTagModule } from 'ng-zorro-antd/tag';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzAlertModule } from 'ng-zorro-antd/alert';
+
 @Component({
   selector: 'app-rooms-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    FormsModule,
+    NzTableModule,
+    NzButtonModule,
+    NzModalModule,
+    NzFormModule,
+    NzInputModule,
+    NzSelectModule,
+    NzSwitchModule,
+    NzIconModule,
+    NzPopconfirmModule,
+    NzTagModule,
+    NzSpinModule,
+    NzAlertModule
+  ],
   templateUrl: './rooms-list.component.html',
   styleUrl: './rooms-list.component.scss'
 })
@@ -20,17 +52,33 @@ export class RoomsListComponent implements OnInit {
   error = signal<string | null>(null);
   filterHotelId = signal<number | null>(null);
 
+  // Modal & Form
+  isVisible = false;
+  isConfirmLoading = false;
+  roomForm: FormGroup;
+  isEditMode = false;
+  currentRoomId: number | null = null;
+
   constructor(
     private roomsService: RoomsService,
     private hotelsService: HotelsService,
-    private router: Router
-  ) {}
+    private router: Router,
+    private fb: FormBuilder,
+    private message: NzMessageService
+  ) {
+    this.roomForm = this.fb.group({
+      roomNumber: ['', [Validators.required]],
+      type: ['', [Validators.required]],
+      price: [0, [Validators.required, Validators.min(0)]],
+      available: [true],
+      hotelId: [null, [Validators.required]]
+    });
+  }
 
   ngOnInit(): void {
     this.loadHotels();
     this.loadRooms();
   }
-
   loadHotels(): void {
     this.hotelsService.getHotels().subscribe({
       next: (data) => {
@@ -59,7 +107,7 @@ export class RoomsListComponent implements OnInit {
   }
 
   get filteredRooms() {
-    const filtered = this.filterHotelId() 
+    const filtered = this.filterHotelId()
       ? this.rooms().filter(r => r.hotelId === this.filterHotelId())
       : this.rooms();
     return filtered;
@@ -73,28 +121,88 @@ export class RoomsListComponent implements OnInit {
     this.router.navigate([NAVIGATION_ROUTES.ROOMS, id]);
   }
 
-  editRoom(id: number, event: Event): void {
-    event.stopPropagation();
-    this.router.navigate([NAVIGATION_ROUTES.ROOMS, id], { queryParams: { action: 'edit' } });
+  showModal(): void {
+    this.isVisible = true;
+    this.isEditMode = false;
+    this.currentRoomId = null;
+    this.roomForm.reset({
+      available: true,
+      price: 0
+    });
   }
 
-  deleteRoom(id: number, event: Event): void {
-    event.stopPropagation();
-    if (confirm('Are you sure you want to delete this room?')) {
-      this.roomsService.deleteRoom(id).subscribe({
-        next: () => {
-          this.loadRooms();
-        },
-        error: (err) => {
-          this.error.set('Failed to delete room');
-          console.error('Error:', err);
+  editRoom(room: Room): void {
+    this.isVisible = true;
+    this.isEditMode = true;
+    this.currentRoomId = room.id;
+    this.roomForm.patchValue({
+      roomNumber: room.roomNumber,
+      type: room.type,
+      price: room.price,
+      available: room.available,
+      hotelId: room.hotelId
+    });
+  }
+
+  handleOk(): void {
+    if (this.roomForm.valid) {
+      this.isConfirmLoading = true;
+      const roomData = this.roomForm.value;
+
+      if (this.isEditMode && this.currentRoomId) {
+        this.roomsService.updateRoom(this.currentRoomId, roomData).subscribe({
+          next: () => {
+            this.message.success('Room updated successfully');
+            this.isVisible = false;
+            this.isConfirmLoading = false;
+            this.loadRooms();
+          },
+          error: (err) => {
+            this.message.error('Failed to update room');
+            this.isConfirmLoading = false;
+            console.error(err);
+          }
+        });
+      } else {
+        this.roomsService.createRoom(roomData).subscribe({
+          next: () => {
+            this.message.success('Room created successfully');
+            this.isVisible = false;
+            this.isConfirmLoading = false;
+            this.loadRooms();
+          },
+          error: (err) => {
+            this.message.error('Failed to create room');
+            this.isConfirmLoading = false;
+            console.error(err);
+          }
+        });
+      }
+    } else {
+      Object.values(this.roomForm.controls).forEach(control => {
+        if (control.invalid) {
+          control.markAsDirty();
+          control.updateValueAndValidity({ onlySelf: true });
         }
       });
     }
   }
 
-  addRoom(): void {
-    this.router.navigate([NAVIGATION_ROUTES.ROOMS], { queryParams: { action: 'add' } });
+  handleCancel(): void {
+    this.isVisible = false;
+  }
+
+  deleteRoom(id: number): void {
+    this.roomsService.deleteRoom(id).subscribe({
+      next: () => {
+        this.message.success('Room deleted successfully');
+        this.loadRooms();
+      },
+      error: (err) => {
+        this.message.error('Failed to delete room');
+        console.error('Error:', err);
+      }
+    });
   }
 
   setFilter(hotelId: number | null): void {

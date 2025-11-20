@@ -1,63 +1,35 @@
-<div class="login-container">
-  <div class="login-box">
-    <h1>Hotel Management System</h1>
-    <h2>Login</h2>
+<div class="login-container"
+  style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0f2f5;">
+  <nz-card style="width: 400px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+    <div style="text-align: center; margin-bottom: 24px;">
+      <h1 style="margin-bottom: 8px;">Hotel Management</h1>
+      <p style="color: rgba(0,0,0,0.45);">System Login</p>
+    </div>
 
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-      <div class="form-group">
-        <label for="username">Username</label>
-        <input
-          type="text"
-          id="username"
-          class="form-control"
-          formControlName="username"
-          [class.is-invalid]="submitted && f['username'].errors"
-          placeholder="Enter your username"
-        />
-        @if (submitted && f['username'].errors) {
-          <div class="invalid-feedback">
-            @if (f['username'].errors['required']) {
-              <div>Username is required</div>
-            }
-          </div>
-        }
+    <form nz-form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      <nz-form-item>
+        <nz-form-control nzErrorTip="Please input your username!">
+          <nz-input-group nzPrefixIcon="user">
+            <input type="text" nz-input formControlName="username" placeholder="Username" />
+          </nz-input-group>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-control nzErrorTip="Please input your password!">
+          <nz-input-group nzPrefixIcon="lock">
+            <input type="password" nz-input formControlName="password" placeholder="Password" />
+          </nz-input-group>
+        </nz-form-control>
+      </nz-form-item>
+
+      <div *ngIf="error" style="margin-bottom: 24px;">
+        <nz-alert nzType="error" [nzMessage]="error" nzShowIcon></nz-alert>
       </div>
 
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input
-          type="password"
-          id="password"
-          class="form-control"
-          formControlName="password"
-          [class.is-invalid]="submitted && f['password'].errors"
-          placeholder="Enter your password"
-        />
-        @if (submitted && f['password'].errors) {
-          <div class="invalid-feedback">
-            @if (f['password'].errors['required']) {
-              <div>Password is required</div>
-            }
-            @if (f['password'].errors['minlength']) {
-              <div>Password must be at least 6 characters</div>
-            }
-          </div>
-        }
-      </div>
-
-      @if (error) {
-        <div class="error-message">
-          {{ error }}
-        </div>
-      }
-
-      <button
-        type="submit"
-        class="btn btn-login"
-        [disabled]="loading"
-      >
-        {{ loading ? 'Logging in...' : 'Login' }}
+      <button nz-button nzType="primary" [nzLoading]="loading" style="width: 100%;" [disabled]="loginForm.invalid">
+        Log in
       </button>
     </form>
-  </div>
+  </nz-card>
 </div>

@@ -2,68 +2,109 @@
   <div class="rooms-header">
     <div>
       <h1>Rooms Management</h1>
-      <p class="subtitle">Manage all rooms across hotels</p>
+      <p class="subtitle">Manage all rooms in the system</p>
     </div>
-    <button class="btn btn-primary" (click)="addRoom()">
-      <span class="btn-icon">+</span>
+    <button nz-button nzType="primary" (click)="showModal()">
+      <span nz-icon nzType="plus"></span>
       Add New Room
     </button>
   </div>
 
-  <!-- Filter -->
-  <div *ngIf="hotels().length > 0" class="filter-section">
-    <button
-      class="filter-btn"
-      [class.active]="filterHotelId() === null"
-      (click)="setFilter(null)">
-      All Hotels
-    </button>
-    <button
-      *ngFor="let hotel of hotels()"
-      class="filter-btn"
-      [class.active]="filterHotelId() === hotel.id"
-      (click)="setFilter(hotel.id)">
-      {{ hotel.name }}
-    </button>
+  <!-- Filters -->
+  <div class="filters">
+    <nz-select [ngModel]="filterHotelId()" (ngModelChange)="setFilter($event)" nzPlaceHolder="Filter by Hotel"
+      nzAllowClear style="width: 200px;">
+      <nz-option *ngFor="let hotel of hotels()" [nzValue]="hotel.id" [nzLabel]="hotel.name"></nz-option>
+    </nz-select>
   </div>
 
   <!-- Loading State -->
   <div *ngIf="loading()" class="loading-state">
-    <div class="spinner"></div>
-    <p>Loading rooms...</p>
+    <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
   </div>
 
   <!-- Error State -->
   <div *ngIf="error()" class="error-state">
-    <p>{{ error() }}</p>
-    <button class="btn btn-primary" (click)="loadRooms()">Retry</button>
+    <nz-alert nzType="error" [nzMessage]="error()" nzShowIcon></nz-alert>
+    <button nz-button nzType="primary" (click)="loadRooms()" style="margin-top: 16px;">Retry</button>
   </div>
 
   <!-- Rooms List -->
-  <div *ngIf="!loading() && !error()" class="rooms-list">
-    <div *ngIf="filteredRooms.length === 0" class="empty-state">
-      <p>No rooms found</p>
-      <button class="btn btn-primary" (click)="addRoom()">Create First Room</button>
-    </div>
-
-    <div *ngFor="let room of filteredRooms" class="room-item" (click)="viewRoom(room.id)">
-      <div class="room-info">
-        <div class="room-header">
-          <h3>Room #{{ room.roomNumber }}</h3>
-          <span class="room-type">{{ room.type }}</span>
-        </div>
-        <p class="hotel-name">🏨 {{ getHotelName(room.hotelId) }}</p>
-        <p class="room-price">${{ room.price }}/night</p>
-      </div>
-      <div class="room-status">
-        <span [class.available]="room.available" [class.booked]="!room.available">
-          {{ room.available ? '✓ Available' : '✕ Booked' }}
-        </span>
-      </div>
-      <div class="room-actions">
-        <button class="btn-icon edit" (click)="editRoom(room.id, $event)" title="Edit">✏️</button>
-        <button class="btn-icon delete" (click)="deleteRoom(room.id, $event)" title="Delete">🗑️</button>
-      </div>
-    </div>
+  <div *ngIf="!loading() && !error()">
+    <nz-table #basicTable [nzData]="filteredRooms" [nzPageSize]="10">
+      <thead>
+        <tr>
+          <th>Room Number</th>
+          <th>Type</th>
+          <th>Price</th>
+          <th>Hotel</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let data of basicTable.data" (click)="viewRoom(data.id)" style="cursor: pointer;">
+          <td>{{ data.roomNumber }}</td>
+          <td>{{ data.type }}</td>
+          <td>{{ data.price | currency }}</td>
+          <td>{{ getHotelName(data.hotelId) }}</td>
+          <td>
+            <nz-tag [nzColor]="data.available ? 'success' : 'error'">
+              {{ data.available ? 'Available' : 'Occupied' }}
+            </nz-tag>
+          </td>
+          <td>
+            <button nz-button nzType="text" (click)="$event.stopPropagation(); editRoom(data)">
+              <span nz-icon nzType="edit" nzTheme="outline"></span>
+            </button>
+            <button nz-button nzType="text" nzDanger nz-popconfirm nzPopconfirmTitle="Are you sure delete this room?"
+              (nzOnConfirm)="deleteRoom(data.id)" (click)="$event.stopPropagation()">
+              <span nz-icon nzType="delete" nzTheme="outline"></span>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
   </div>
+
+  <!-- Add/Edit Modal -->
+  <nz-modal [(nzVisible)]="isVisible" [nzTitle]="isEditMode ? 'Edit Room' : 'Add New Room'"
+    (nzOnCancel)="handleCancel()" (nzOnOk)="handleOk()" [nzOkLoading]="isConfirmLoading">
+    <ng-container *nzModalContent>
+      <form nz-form [formGroup]="roomForm">
+        <nz-form-item>
+          <nz-form-label [nzSm]="8" [nzXs]="24" nzRequired nzFor="hotelId">Hotel</nz-form-label>
+          <nz-form-control [nzSm]="14" [nzXs]="24" nzErrorTip="Please select a hotel!">
+            <nz-select formControlName="hotelId" id="hotelId" nzPlaceHolder="Select Hotel">
+              <nz-option *ngFor="let hotel of hotels()" [nzValue]="hotel.id" [nzLabel]="hotel.name"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label [nzSm]="8" [nzXs]="24" nzRequired nzFor="roomNumber">Room Number</nz-form-label>
+          <nz-form-control [nzSm]="14" [nzXs]="24" nzErrorTip="Please input room number!">
+            <input nz-input formControlName="roomNumber" id="roomNumber" />
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label [nzSm]="8" [nzXs]="24" nzRequired nzFor="type">Type</nz-form-label>
+          <nz-form-control [nzSm]="14" [nzXs]="24" nzErrorTip="Please input room type!">
+            <input nz-input formControlName="type" id="type" />
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label [nzSm]="8" [nzXs]="24" nzRequired nzFor="price">Price</nz-form-label>
+          <nz-form-control [nzSm]="14" [nzXs]="24" nzErrorTip="Please input valid price!">
+            <input nz-input type="number" formControlName="price" id="price" />
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label [nzSm]="8" [nzXs]="24" nzFor="available">Available</nz-form-label>
+          <nz-form-control [nzSm]="14" [nzXs]="24">
+            <nz-switch formControlName="available" id="available"></nz-switch>
+          </nz-form-control>
+        </nz-form-item>
+      </form>
+    </ng-container>
+  </nz-modal>
 </div>

@@ -6,12 +6,12 @@
       <p class="subtitle">Hotel Management System Overview</p>
     </div>
     <div class="action-buttons">
-      <button class="btn btn-primary" (click)="navigateToAddHotel()">
-        <span class="btn-icon">+</span>
+      <button nz-button nzType="primary" (click)="navigateToAddHotel()">
+        <span nz-icon nzType="plus"></span>
         Add Hotel
       </button>
-      <button class="btn btn-secondary" (click)="navigateToAddRoom()">
-        <span class="btn-icon">+</span>
+      <button nz-button nzType="default" (click)="navigateToAddRoom()">
+        <span nz-icon nzType="plus"></span>
         Add Room
       </button>
     </div>
@@ -19,102 +19,101 @@
 
   <!-- Loading State -->
   <div *ngIf="loading()" class="loading-state">
-    <div class="spinner"></div>
-    <p>Loading dashboard data...</p>
+    <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
   </div>
 
   <!-- Error State -->
   <div *ngIf="error()" class="error-state">
-    <p>{{ error() }}</p>
-    <button class="btn btn-primary" (click)="loadDashboardStats()">Retry</button>
+    <nz-alert nzType="error" [nzMessage]="error()" nzShowIcon></nz-alert>
+    <button nz-button nzType="primary" (click)="loadDashboardStats()" style="margin-top: 16px;">Retry</button>
   </div>
 
   <!-- Dashboard Content -->
   <div *ngIf="!loading() && !error() && stats()" class="dashboard-content">
     <!-- Stats Grid -->
-    <div class="stats-grid">
-      <!-- Total Hotels Card -->
-      <div class="stat-card">
-        <div class="card-icon hotels">🏨</div>
-        <div class="card-content">
-          <h3>Total Hotels</h3>
-          <p class="stat-value">{{ stats()!.totalHotels }}</p>
-          <a href="javascript:void(0)" (click)="navigateToHotels()" class="card-link">View all →</a>
-        </div>
+    <div nz-row [nzGutter]="16">
+      <div nz-col [nzSpan]="6">
+        <nz-card>
+          <nz-statistic [nzValue]="stats()!.totalHotels" [nzTitle]="'Total Hotels'" [nzPrefix]="prefixTplHotels"
+            [nzSuffix]="''" [nzValueStyle]="{ color: '#3f8600' }"></nz-statistic>
+          <ng-template #prefixTplHotels><span nz-icon nzType="home"></span></ng-template>
+          <button nz-button nzType="link" (click)="navigateToHotels()">View all</button>
+        </nz-card>
       </div>
-
-      <!-- Total Rooms Card -->
-      <div class="stat-card">
-        <div class="card-icon rooms">🚪</div>
-        <div class="card-content">
-          <h3>Total Rooms</h3>
-          <p class="stat-value">{{ stats()!.totalRooms }}</p>
-          <a href="javascript:void(0)" (click)="navigateToRooms()" class="card-link">View all →</a>
-        </div>
+      <div nz-col [nzSpan]="6">
+        <nz-card>
+          <nz-statistic [nzValue]="stats()!.totalRooms" [nzTitle]="'Total Rooms'" [nzPrefix]="prefixTplRooms"
+            [nzValueStyle]="{ color: '#cf1322' }"></nz-statistic>
+          <ng-template #prefixTplRooms><span nz-icon nzType="appstore"></span></ng-template>
+          <button nz-button nzType="link" (click)="navigateToRooms()">View all</button>
+        </nz-card>
       </div>
-
-      <!-- Available Rooms Card -->
-      <div class="stat-card">
-        <div class="card-icon available">✅</div>
-        <div class="card-content">
-          <h3>Available Rooms</h3>
-          <p class="stat-value">{{ stats()!.availableRooms }}</p>
-          <span class="percentage">{{ stats()!.totalRooms > 0 ? ((stats()!.availableRooms / stats()!.totalRooms * 100) | number:'1.0-0') : 0 }}%</span>
-        </div>
+      <div nz-col [nzSpan]="6">
+        <nz-card>
+          <nz-statistic [nzValue]="stats()!.availableRooms" [nzTitle]="'Available Rooms'"
+            [nzPrefix]="prefixTplAvailable" [nzValueStyle]="{ color: '#3f8600' }"></nz-statistic>
+          <ng-template #prefixTplAvailable><span nz-icon nzType="check-circle"></span></ng-template>
+          <nz-progress
+            [nzPercent]="stats()!.totalRooms > 0 ? ((stats()!.availableRooms / stats()!.totalRooms * 100) | number:'1.0-0') : 0"
+            nzSize="small"></nz-progress>
+        </nz-card>
       </div>
-
-      <!-- Booked Rooms Card -->
-      <div class="stat-card">
-        <div class="card-icon booked">📅</div>
-        <div class="card-content">
-          <h3>Booked Rooms</h3>
-          <p class="stat-value">{{ stats()!.bookedRooms }}</p>
-          <span class="percentage">{{ stats()!.totalRooms > 0 ? ((stats()!.bookedRooms / stats()!.totalRooms * 100) | number:'1.0-0') : 0 }}%</span>
-        </div>
+      <div nz-col [nzSpan]="6">
+        <nz-card>
+          <nz-statistic [nzValue]="stats()!.bookedRooms" [nzTitle]="'Booked Rooms'" [nzPrefix]="prefixTplBooked"
+            [nzValueStyle]="{ color: '#cf1322' }"></nz-statistic>
+          <ng-template #prefixTplBooked><span nz-icon nzType="calendar"></span></ng-template>
+          <nz-progress
+            [nzPercent]="stats()!.totalRooms > 0 ? ((stats()!.bookedRooms / stats()!.totalRooms * 100) | number:'1.0-0') : 0"
+            nzSize="small" nzStatus="exception"></nz-progress>
+        </nz-card>
       </div>
     </div>
 
     <!-- Hotels Details Grid -->
-    <div class="hotels-section">
+    <div class="hotels-section" style="margin-top: 24px;">
       <h2>Hotels Overview</h2>
-      <div class="hotels-grid">
-        <div *ngFor="let hotelStat of stats()!.hotelStats" class="hotel-card" (click)="navigateToHotelDetail(hotelStat.hotel.id)">
-          <div class="hotel-header">
-            <h3>{{ hotelStat.hotel.name }}</h3>
-            <span class="hotel-id">#{{ hotelStat.hotel.id }}</span>
-          </div>
-          <div class="hotel-location">
-            <span class="location-icon">📍</span>
-            <span>{{ hotelStat.hotel.city }}, {{ hotelStat.hotel.country }}</span>
-          </div>
-          <div class="hotel-address">{{ hotelStat.hotel.address }}</div>
-          
-          <div class="hotel-stats">
-            <div class="stat">
-              <span class="stat-label">Total Rooms</span>
-              <span class="stat-number">{{ hotelStat.totalRooms }}</span>
-            </div>
-            <div class="stat">
-              <span class="stat-label">Available</span>
-              <span class="stat-number available">{{ hotelStat.availableRooms }}</span>
-            </div>
-            <div class="stat">
-              <span class="stat-label">Booked</span>
-              <span class="stat-number booked">{{ hotelStat.bookedRooms }}</span>
-            </div>
-          </div>
+      <div nz-row [nzGutter]="16">
+        <div nz-col [nzSpan]="8" *ngFor="let hotelStat of stats()!.hotelStats" style="margin-bottom: 16px;">
+          <nz-card [nzTitle]="hotelStat.hotel.name" [nzExtra]="extraTemplate" [nzHoverable]="true"
+            (click)="navigateToHotelDetail(hotelStat.hotel.id)">
+            <ng-template #extraTemplate>
+              <a (click)="$event.stopPropagation(); navigateToHotelDetail(hotelStat.hotel.id)">Details</a>
+            </ng-template>
+            <p><span nz-icon nzType="environment"></span> {{ hotelStat.hotel.city }}, {{ hotelStat.hotel.country }}</p>
+            <p>{{ hotelStat.hotel.address }}</p>
 
-          <div class="progress-bar">
-            <div class="progress" [style.width.%]="hotelStat.totalRooms > 0 ? (hotelStat.bookedRooms / hotelStat.totalRooms * 100) : 0"></div>
-          </div>
-          <span class="progress-label">Occupancy Rate</span>
-        </div>
+            <div style="margin-top: 16px;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span>Occupancy</span>
+                <span>{{ hotelStat.totalRooms > 0 ? (hotelStat.bookedRooms / hotelStat.totalRooms * 100 |
+                  number:'1.0-0') : 0 }}%</span>
+              </div>
+              <nz-progress
+                [nzPercent]="hotelStat.totalRooms > 0 ? (hotelStat.bookedRooms / hotelStat.totalRooms * 100) : 0"
+                [nzShowInfo]="false"></nz-progress>
+            </div>
 
-        <!-- Empty State -->
-        <div *ngIf="stats()!.hotelStats.length === 0" class="empty-state">
-          <p>No hotels available yet</p>
-          <button class="btn btn-primary" (click)="navigateToAddHotel()">Create First Hotel</button>
+            <div style="display: flex; justify-content: space-between; margin-top: 16px;">
+              <nz-statistic [nzValue]="hotelStat.totalRooms" [nzTitle]="'Total'"
+                [nzValueStyle]="{ fontSize: '16px' }"></nz-statistic>
+              <nz-statistic [nzValue]="hotelStat.availableRooms" [nzTitle]="'Available'"
+                [nzValueStyle]="{ fontSize: '16px', color: '#3f8600' }"></nz-statistic>
+              <nz-statistic [nzValue]="hotelStat.bookedRooms" [nzTitle]="'Booked'"
+                [nzValueStyle]="{ fontSize: '16px', color: '#cf1322' }"></nz-statistic>
+            </div>
+          </nz-card>
         </div>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="stats()!.hotelStats.length === 0" class="empty-state">
+        <nz-empty [nzNotFoundImage]="'simple'" [nzNotFoundContent]="'No hotels available yet'"
+          [nzNotFoundFooter]="footerTpl">
+          <ng-template #footerTpl>
+            <button nz-button nzType="primary" (click)="navigateToAddHotel()">Create First Hotel</button>
+          </ng-template>
+        </nz-empty>
       </div>
     </div>
   </div>

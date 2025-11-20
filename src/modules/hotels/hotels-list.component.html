@@ -4,41 +4,91 @@
       <h1>Hotels Management</h1>
       <p class="subtitle">Manage all hotels in the system</p>
     </div>
-    <button class="btn btn-primary" (click)="addHotel()">
-      <span class="btn-icon">+</span>
+    <button nz-button nzType="primary" (click)="showModal()">
+      <span nz-icon nzType="plus"></span>
       Add New Hotel
     </button>
   </div>
 
   <!-- Loading State -->
   <div *ngIf="loading()" class="loading-state">
-    <div class="spinner"></div>
-    <p>Loading hotels...</p>
+    <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
   </div>
 
   <!-- Error State -->
   <div *ngIf="error()" class="error-state">
-    <p>{{ error() }}</p>
-    <button class="btn btn-primary" (click)="loadHotels()">Retry</button>
+    <nz-alert nzType="error" [nzMessage]="error()" nzShowIcon></nz-alert>
+    <button nz-button nzType="primary" (click)="loadHotels()" style="margin-top: 16px;">Retry</button>
   </div>
 
   <!-- Hotels List -->
-  <div *ngIf="!loading() && !error()" class="hotels-list">
-    <div *ngIf="hotels().length === 0" class="empty-state">
-      <p>No hotels found</p>
-      <button class="btn btn-primary" (click)="addHotel()">Create First Hotel</button>
-    </div>
-
-    <div *ngFor="let hotel of hotels()" class="hotel-item" (click)="viewHotel(hotel.id)">
-      <div class="hotel-info">
-        <h3>{{ hotel.name }}</h3>
-        <p class="location">📍 {{ hotel.city }}, {{ hotel.country }}</p>
-        <p class="address">{{ hotel.address }}</p>
-      </div>
-      <div class="hotel-actions">
-        <button class="btn-icon edit" (click)="editHotel(hotel.id, $event)" title="Edit">✏️</button>
-        <button class="btn-icon delete" (click)="deleteHotel(hotel.id, $event)" title="Delete">🗑️</button>
-      </div>
-    </div>
+  <div *ngIf="!loading() && !error()">
+    <nz-table #basicTable [nzData]="hotels()" [nzPageSize]="10">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Location</th>
+          <th>Address</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let data of basicTable.data" (click)="viewHotel(data.id)" style="cursor: pointer;">
+          <td>{{ data.name }}</td>
+          <td>{{ data.city }}, {{ data.country }}</td>
+          <td>{{ data.address }}</td>
+          <td>
+            <button nz-button nzType="text" (click)="$event.stopPropagation(); editHotel(data)">
+              <span nz-icon nzType="edit" nzTheme="outline"></span>
+            </button>
+            <button nz-button nzType="text" nzDanger 
+              nz-popconfirm
+              nzPopconfirmTitle="Are you sure delete this hotel?"
+              (nzOnConfirm)="deleteHotel(data.id)"
+              (click)="$event.stopPropagation()">
+              <span nz-icon nzType="delete" nzTheme="outline"></span>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
   </div>
+
+  <!-- Add/Edit Modal -->
+  <nz-modal
+    [(nzVisible)]="isVisible"
+    [nzTitle]="isEditMode ? 'Edit Hotel' : 'Add New Hotel'"
+    (nzOnCancel)="handleCancel()"
+    (nzOnOk)="handleOk()"
+    [nzOkLoading]="isConfirmLoading"
+  >
+    <ng-container *nzModalContent>
+      <form nz-form [formGroup]="hotelForm">
+        <nz-form-item>
+          <nz-form-label [nzSm]="6" [nzXs]="24" nzRequired nzFor="name">Name</nz-form-label>
+          <nz-form-control [nzSm]="14" [nzXs]="24" nzErrorTip="Please input hotel name!">
+            <input nz-input formControlName="name" id="name" />
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label [nzSm]="6" [nzXs]="24" nzRequired nzFor="address">Address</nz-form-label>
+          <nz-form-control [nzSm]="14" [nzXs]="24" nzErrorTip="Please input address!">
+            <input nz-input formControlName="address" id="address" />
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label [nzSm]="6" [nzXs]="24" nzRequired nzFor="city">City</nz-form-label>
+          <nz-form-control [nzSm]="14" [nzXs]="24" nzErrorTip="Please input city!">
+            <input nz-input formControlName="city" id="city" />
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label [nzSm]="6" [nzXs]="24" nzRequired nzFor="country">Country</nz-form-label>
+          <nz-form-control [nzSm]="14" [nzXs]="24" nzErrorTip="Please input country!">
+            <input nz-input formControlName="country" id="country" />
+          </nz-form-control>
+        </nz-form-item>
+      </form>
+    </ng-container>
+  </nz-modal>
 </div>

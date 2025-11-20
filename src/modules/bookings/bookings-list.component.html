@@ -2,98 +2,162 @@
   <div class="bookings-header">
     <div>
       <h1>Bookings Management</h1>
-      <p class="subtitle">Manage all room bookings</p>
+      <p class="subtitle">Manage all bookings in the system</p>
     </div>
-    <button class="btn btn-primary" (click)="addBooking()">
-      <span class="btn-icon">+</span>
-      New Booking
+    <button nz-button nzType="primary" (click)="showModal()">
+      <span nz-icon nzType="plus"></span>
+      Add New Booking
     </button>
   </div>
 
-  <!-- Filter -->
-  <div class="filter-section">
-    <button
-      class="filter-btn"
-      [class.active]="filterStatus() === null"
-      (click)="setFilter(null)">
-      All Bookings
-    </button>
-    <button
-      class="filter-btn"
-      [class.active]="filterStatus() === 'PENDING'"
-      (click)="setFilter('PENDING')">
-      Pending
-    </button>
-    <button
-      class="filter-btn"
-      [class.active]="filterStatus() === 'CONFIRMED'"
-      (click)="setFilter('CONFIRMED')">
-      Confirmed
-    </button>
-    <button
-      class="filter-btn"
-      [class.active]="filterStatus() === 'CHECKED_IN'"
-      (click)="setFilter('CHECKED_IN')">
-      Checked In
-    </button>
-    <button
-      class="filter-btn"
-      [class.active]="filterStatus() === 'CHECKED_OUT'"
-      (click)="setFilter('CHECKED_OUT')">
-      Checked Out
-    </button>
-    <button
-      class="filter-btn"
-      [class.active]="filterStatus() === 'CANCELLED'"
-      (click)="setFilter('CANCELLED')">
-      Cancelled
-    </button>
+  <!-- Filters -->
+  <div class="filters">
+    <nz-select [ngModel]="filterStatus()" (ngModelChange)="setFilter($event)" nzPlaceHolder="Filter by Status"
+      nzAllowClear style="width: 200px;">
+      <nz-option nzValue="PENDING" nzLabel="Pending"></nz-option>
+      <nz-option nzValue="CONFIRMED" nzLabel="Confirmed"></nz-option>
+      <nz-option nzValue="CHECKED_IN" nzLabel="Checked In"></nz-option>
+      <nz-option nzValue="CHECKED_OUT" nzLabel="Checked Out"></nz-option>
+      <nz-option nzValue="CANCELLED" nzLabel="Cancelled"></nz-option>
+    </nz-select>
   </div>
 
   <!-- Loading State -->
   <div *ngIf="loading()" class="loading-state">
-    <div class="spinner"></div>
-    <p>Loading bookings...</p>
+    <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
   </div>
 
   <!-- Error State -->
   <div *ngIf="error()" class="error-state">
-    <p>{{ error() }}</p>
-    <button class="btn btn-primary" (click)="loadBookings()">Retry</button>
+    <nz-alert nzType="error" [nzMessage]="error()" nzShowIcon></nz-alert>
+    <button nz-button nzType="primary" (click)="loadBookings()" style="margin-top: 16px;">Retry</button>
   </div>
 
   <!-- Bookings List -->
-  <div *ngIf="!loading() && !error()" class="bookings-list">
-    <div *ngIf="filteredBookings.length === 0" class="empty-state">
-      <p>No bookings found</p>
-      <button class="btn btn-primary" (click)="addBooking()">Create First Booking</button>
-    </div>
-
-    <div *ngFor="let booking of filteredBookings" class="booking-item" (click)="viewBooking(booking.id)">
-      <div class="booking-info">
-        <div class="booking-header">
-          <h3>Room #{{ getRoomNumber(booking.roomId) }}</h3>
-          <span [class]="'status status-' + getStatusColor(booking.status)">
-            {{ booking.status }}
-          </span>
-        </div>
-        <div class="booking-dates">
-          <p>📅 Check-in: {{ booking.checkInDate | date: 'short' }}</p>
-          <p>📅 Check-out: {{ booking.checkOutDate | date: 'short' }}</p>
-        </div>
-        <div *ngIf="booking.guestName" class="guest-info">
-          <p>👤 {{ booking.guestName }}</p>
-          <p *ngIf="booking.guestEmail">📧 {{ booking.guestEmail }}</p>
-          <p *ngIf="booking.guestPhone">📞 {{ booking.guestPhone }}</p>
-        </div>
-      </div>
-      <div class="booking-price">
-        <span class="price">${{ booking.totalPrice }}</span>
-      </div>
-      <div class="booking-actions">
-        <button class="btn-icon edit" (click)="editBooking(booking.id, $event)" title="Edit">✏️</button>
-        <button class="btn-icon delete" (click)="deleteBooking(booking.id, $event)" title="Delete">🗑️</button>
-      </div>
-    </div>
+  <div *ngIf="!loading() && !error()">
+    <nz-table #basicTable [nzData]="filteredBookings" [nzPageSize]="10">
+      <thead>
+        <tr>
+          <th>Room</th>
+          <th>Guest</th>
+          <th>Check In</th>
+          <th>Check Out</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let data of basicTable.data" (click)="viewBooking(data.id)" style="cursor: pointer;">
+          <td>{{ getRoomNumber(data.roomId) }}</td>
+          <td>{{ data.guestName || 'N/A' }}</td>
+          <td>{{ data.checkInDate | date }}</td>
+          <td>{{ data.checkOutDate | date }}</td>
+          <td>
+            <nz-tag [nzColor]="getStatusColor(data.status)">
+              {{ data.status }}
+            </nz-tag>
+          </td>
+          <td>
+            <button nz-button nzType="text" (click)="$event.stopPropagation(); editBooking(data)">
+              <span nz-icon nzType="edit" nzTheme="outline"></span>
+            </button>
+            <button nz-button nzType="text" nzDanger nz-popconfirm nzPopconfirmTitle="Are you sure delete this booking?"
+              (nzOnConfirm)="deleteBooking(data.id)" (click)="$event.stopPropagation()">
+              <span nz-icon nzType="delete" nzTheme="outline"></span>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
   </div>
+
+  <!-- Add/Edit Modal -->
+  <nz-modal [(nzVisible)]="isVisible" [nzTitle]="isEditMode ? 'Edit Booking' : 'Add New Booking'"
+    (nzOnCancel)="handleCancel()" (nzOnOk)="handleOk()" [nzOkLoading]="isConfirmLoading" [nzWidth]="700">
+    <ng-container *nzModalContent>
+      <form nz-form [formGroup]="bookingForm" [nzLayout]="'vertical'">
+        <div class="row" style="display: flex; gap: 16px;">
+          <div style="flex: 1;">
+            <nz-form-item>
+              <nz-form-label nzRequired nzFor="roomId">Room</nz-form-label>
+              <nz-form-control nzErrorTip="Please select a room!">
+                <nz-select formControlName="roomId" id="roomId" nzPlaceHolder="Select Room">
+                  <nz-option *ngFor="let room of rooms()" [nzValue]="room.id"
+                    [nzLabel]="room.roomNumber + ' (' + room.type + ')'"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div style="flex: 1;">
+            <nz-form-item>
+              <nz-form-label nzRequired nzFor="userId">User ID</nz-form-label>
+              <nz-form-control nzErrorTip="Please input user ID!">
+                <input nz-input type="number" formControlName="userId" id="userId" placeholder="User ID" />
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+
+        <div class="row" style="display: flex; gap: 16px;">
+          <div style="flex: 1;">
+            <nz-form-item>
+              <nz-form-label nzRequired nzFor="checkInDate">Check In Date</nz-form-label>
+              <nz-form-control nzErrorTip="Please select check in date!">
+                <nz-date-picker formControlName="checkInDate" id="checkInDate" style="width: 100%;"></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div style="flex: 1;">
+            <nz-form-item>
+              <nz-form-label nzRequired nzFor="checkOutDate">Check Out Date</nz-form-label>
+              <nz-form-control nzErrorTip="Please select check out date!">
+                <nz-date-picker formControlName="checkOutDate" id="checkOutDate" style="width: 100%;"></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+
+        <nz-form-item>
+          <nz-form-label nzRequired nzFor="status">Status</nz-form-label>
+          <nz-form-control nzErrorTip="Please select status!">
+            <nz-select formControlName="status" id="status">
+              <nz-option nzValue="PENDING" nzLabel="Pending"></nz-option>
+              <nz-option nzValue="CONFIRMED" nzLabel="Confirmed"></nz-option>
+              <nz-option nzValue="CHECKED_IN" nzLabel="Checked In"></nz-option>
+              <nz-option nzValue="CHECKED_OUT" nzLabel="Checked Out"></nz-option>
+              <nz-option nzValue="CANCELLED" nzLabel="Cancelled"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-divider nzText="Guest Information" nzOrientation="left"></nz-divider>
+
+        <nz-form-item>
+          <nz-form-label nzFor="guestName">Guest Name</nz-form-label>
+          <nz-form-control>
+            <input nz-input formControlName="guestName" id="guestName" />
+          </nz-form-control>
+        </nz-form-item>
+
+        <div class="row" style="display: flex; gap: 16px;">
+          <div style="flex: 1;">
+            <nz-form-item>
+              <nz-form-label nzFor="guestEmail">Guest Email</nz-form-label>
+              <nz-form-control nzErrorTip="Invalid email!">
+                <input nz-input formControlName="guestEmail" id="guestEmail" />
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div style="flex: 1;">
+            <nz-form-item>
+              <nz-form-label nzFor="guestPhone">Guest Phone</nz-form-label>
+              <nz-form-control>
+                <input nz-input formControlName="guestPhone" id="guestPhone" />
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+      </form>
+    </ng-container>
+  </nz-modal>
 </div>

@@ -4,10 +4,27 @@ import { Router, RouterLink } from '@angular/router';
 import { NAVIGATION_MENU, NAVIGATION_ROUTES } from '../../app/config/navigation.config';
 import { AuthenticationService } from '../../app/services/authentication.service';
 
+// Ant Design Imports
+import { NzLayoutModule } from 'ng-zorro-antd/layout';
+import { NzMenuModule } from 'ng-zorro-antd/menu';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzAvatarModule } from 'ng-zorro-antd/avatar';
+
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [
+    CommonModule,
+    RouterLink,
+    NzLayoutModule,
+    NzMenuModule,
+    NzIconModule,
+    NzButtonModule,
+    NzDropDownModule,
+    NzAvatarModule
+  ],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss'
 })
@@ -18,9 +35,9 @@ export class NavbarComponent implements OnInit {
   username = signal<string | null>(null);
 
   constructor(
-    private router: Router,
+    public router: Router,
     private authService: AuthenticationService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadUserInfo();
@@ -49,5 +66,16 @@ export class NavbarComponent implements OnInit {
   logout(): void {
     this.authService.logout();
     this.router.navigate([NAVIGATION_ROUTES.LOGIN]);
+  }
+
+  getIcon(iconName: string): string {
+    const iconMap: { [key: string]: string } = {
+      'dashboard': 'dashboard',
+      'hotel': 'home',
+      'door_front': 'appstore',
+      'calendar_month': 'calendar',
+      'people': 'team'
+    };
+    return iconMap[iconName] || 'appstore';
   }
 }

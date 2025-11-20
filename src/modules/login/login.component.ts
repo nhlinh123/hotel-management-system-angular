@@ -1,19 +1,37 @@
-import {Component, Injector, OnDestroy, OnInit} from '@angular/core';
-import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {AuthenticationService} from '../../app/services/authentication.service';
-import {Router} from '@angular/router';
-import {CommonModule} from '@angular/common';
-import {HttpClientModule} from '@angular/common/http';
-import {AUTHENTICATION_SERVICE_TOKEN} from '../../app/injection-tokens/injection-token';
-import {authenticationFactory} from '../../app/interfaces/authentication.interface';
-import {catchError, Observable, of, pipe, Subscription, tap} from 'rxjs';
-import {AuthenticationResponse} from '../../app/models';
+import { Component, Injector, OnDestroy, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AuthenticationService } from '../../app/services/authentication.service';
+import { Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { HttpClientModule } from '@angular/common/http';
+import { AUTHENTICATION_SERVICE_TOKEN } from '../../app/injection-tokens/injection-token';
+import { authenticationFactory } from '../../app/interfaces/authentication.interface';
+import { catchError, Observable, of, pipe, Subscription, tap } from 'rxjs';
+import { AuthenticationResponse } from '../../app/models';
 import { NAVIGATION_ROUTES } from '../../app/config/navigation.config';
+
+// Ant Design Imports
+import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzAlertModule } from 'ng-zorro-antd/alert';
+import { NzIconModule } from 'ng-zorro-antd/icon';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule, HttpClientModule],
+  imports: [
+    ReactiveFormsModule,
+    CommonModule,
+    HttpClientModule,
+    NzFormModule,
+    NzInputModule,
+    NzButtonModule,
+    NzCardModule,
+    NzAlertModule,
+    NzIconModule
+  ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
   providers: [

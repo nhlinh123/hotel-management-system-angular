@@ -2,55 +2,84 @@
   <div class="users-header">
     <div>
       <h1>Users Management</h1>
-      <p class="subtitle">Manage system users and roles</p>
+      <p class="subtitle">Manage all users in the system</p>
     </div>
-    <button class="btn btn-primary" (click)="addUser()">
-      <span class="btn-icon">+</span>
+    <button nz-button nzType="primary" (click)="showModal()">
+      <span nz-icon nzType="plus"></span>
       Add New User
     </button>
   </div>
 
   <!-- Loading State -->
   <div *ngIf="loading()" class="loading-state">
-    <div class="spinner"></div>
-    <p>Loading users...</p>
+    <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
   </div>
 
   <!-- Error State -->
   <div *ngIf="error()" class="error-state">
-    <p>{{ error() }}</p>
-    <button class="btn btn-primary" (click)="loadUsers()">Retry</button>
+    <nz-alert nzType="error" [nzMessage]="error()" nzShowIcon></nz-alert>
+    <button nz-button nzType="primary" (click)="loadUsers()" style="margin-top: 16px;">Retry</button>
   </div>
 
   <!-- Users List -->
-  <div *ngIf="!loading() && !error()" class="users-list">
-    <div *ngIf="users().length === 0" class="empty-state">
-      <p>No users found</p>
-      <button class="btn btn-primary" (click)="addUser()">Create First User</button>
-    </div>
-
-    <table *ngIf="users().length > 0" class="users-table">
+  <div *ngIf="!loading() && !error()">
+    <nz-table #basicTable [nzData]="users()" [nzPageSize]="10">
       <thead>
         <tr>
-          <th>ID</th>
           <th>Username</th>
           <th>Roles</th>
           <th>Actions</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let user of users()" (click)="viewUser(user.id)" class="user-row">
-          <td>{{ user.id }}</td>
-          <td class="username">{{ user.username }}</td>
+        <tr *ngFor="let data of basicTable.data" (click)="viewUser(data.id)" style="cursor: pointer;">
+          <td>{{ data.username }}</td>
           <td>
-            <span class="role-badge">{{ user.roles }}</span>
+            <nz-tag [nzColor]="'blue'">{{ data.roles }}</nz-tag>
           </td>
-          <td class="actions">
-            <button class="btn-icon edit" (click)="editUser(user.id, $event)" title="Edit">✏️</button>
-            <button class="btn-icon delete" (click)="deleteUser(user.id, $event)" title="Delete">🗑️</button>
+          <td>
+            <button nz-button nzType="text" (click)="$event.stopPropagation(); editUser(data)">
+              <span nz-icon nzType="edit" nzTheme="outline"></span>
+            </button>
+            <button nz-button nzType="text" nzDanger nz-popconfirm nzPopconfirmTitle="Are you sure delete this user?"
+              (nzOnConfirm)="deleteUser(data.id)" (click)="$event.stopPropagation()">
+              <span nz-icon nzType="delete" nzTheme="outline"></span>
+            </button>
           </td>
         </tr>
       </tbody>
-    </table>
+    </nz-table>
   </div>
+
+  <!-- Add/Edit Modal -->
+  <nz-modal [(nzVisible)]="isVisible" [nzTitle]="isEditMode ? 'Edit User' : 'Add New User'"
+    (nzOnCancel)="handleCancel()" (nzOnOk)="handleOk()" [nzOkLoading]="isConfirmLoading">
+    <ng-container *nzModalContent>
+      <form nz-form [formGroup]="userForm">
+        <nz-form-item>
+          <nz-form-label [nzSm]="6" [nzXs]="24" nzRequired nzFor="username">Username</nz-form-label>
+          <nz-form-control [nzSm]="14" [nzXs]="24" nzErrorTip="Please input username!">
+            <input nz-input formControlName="username" id="username" />
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label [nzSm]="6" [nzXs]="24" [nzRequired]="!isEditMode" nzFor="password">Password</nz-form-label>
+          <nz-form-control [nzSm]="14" [nzXs]="24" nzErrorTip="Please input password!">
+            <input nz-input type="password" formControlName="password" id="password"
+              placeholder="Leave blank to keep current" />
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label [nzSm]="6" [nzXs]="24" nzRequired nzFor="roles">Roles</nz-form-label>
+          <nz-form-control [nzSm]="14" [nzXs]="24" nzErrorTip="Please select roles!">
+            <nz-select formControlName="roles" id="roles">
+              <nz-option nzValue="USER" nzLabel="User"></nz-option>
+              <nz-option nzValue="ADMIN" nzLabel="Admin"></nz-option>
+              <nz-option nzValue="MANAGER" nzLabel="Manager"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </form>
+    </ng-container>
+  </nz-modal>
 </div>
